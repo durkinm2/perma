@@ -963,7 +963,8 @@ def spoof_pp_response_subscription():
                 "paid_through": "1970-01-21T00:00:00.000000Z",
                 "link_limit_effective_timestamp": "1970-01-21T00:00:00.000000Z",
                 "link_limit": "unlimited",
-                "reference_number": "PERMA-1237-6200"
+                "reference_number": "PERMA-1237-6200",
+                "pending_change": None
             },
             "purchases": []
         }
@@ -983,7 +984,14 @@ def spoof_pp_response_subscription_with_pending_change():
                 "paid_through": "9999-01-21T00:00:00.000000Z",
                 "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
                 "link_limit": "unlimited",
-                "reference_number": "PERMA-1237-6201"
+                "reference_number": "PERMA-1237-6201",
+                # until LIL-5426 stage 3, payments also reports a pending change
+                # by overlaying it on the fields above, so include both here
+                "pending_change": {
+                    "rate": "9999.99",
+                    "link_limit": "unlimited",
+                    "effective": "9999-01-21T00:00:00.000000Z"
+                }
             },
             "purchases": []
         }

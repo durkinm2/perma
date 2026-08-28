@@ -185,10 +185,10 @@ def test_get_subscription_happy_path_with_pending_change(post, process, paying_u
             'paid_through': pp_date_from_post('9999-01-21T00:00:00.000000Z'),
             'reference_number': response['subscription']['reference_number'],
             'pending_change': {
-                'rate': response['subscription']['rate'],
-                'link_limit': response['subscription']['link_limit'],
+                'rate': response['subscription']['pending_change']['rate'],
+                'link_limit': response['subscription']['pending_change']['link_limit'],
                 'frequency': response['subscription']['frequency'],
-                'effective': pp_date_from_post(response['subscription']['link_limit_effective_timestamp'])
+                'effective': pp_date_from_post(response['subscription']['pending_change']['effective'])
             }
         }
         assert str(customer.link_limit) != response['subscription']['link_limit']
@@ -201,12 +201,27 @@ def test_get_subscription_happy_path_with_pending_change(post, process, paying_u
 @patch('perma.models.customer.requests.post', autospec=True)
 def test_get_subscription_null_effective_timestamp_treated_as_applied(post, process, paying_user, spoof_pp_response_subscription):
     # A null link_limit_effective_timestamp (e.g. a legacy Perma Payments row)
-    # must not crash the usage-plan read on the None <= now comparison; it is
-    # treated as already applied, with no pending change.
+    # must not crash the usage-plan read; the returned tier is applied as
+    # current, with no pending change.
     post.return_value.status_code = 200
     customer = paying_user
     response = spoof_pp_response_subscription(customer)
     response['subscription']['link_limit_effective_timestamp'] = None
+    process.return_value = response
+    subscription = customer.get_subscription()
+    assert subscription['pending_change'] is None
+    assert subscription['status'] == response['subscription']['status']
+
+
+@patch('perma.models.customer.process_perma_payments_transmission', autospec=True)
+@patch('perma.models.customer.requests.post', autospec=True)
+def test_get_subscription_tolerates_missing_pending_change_field(post, process, paying_user, spoof_pp_response_subscription):
+    # an older payments build won't send pending_change at all; treat that
+    # as no pending change instead of blowing up
+    post.return_value.status_code = 200
+    customer = paying_user
+    response = spoof_pp_response_subscription(customer)
+    del response['subscription']['pending_change']
     process.return_value = response
     subscription = customer.get_subscription()
     assert subscription['pending_change'] is None
