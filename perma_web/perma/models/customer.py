@@ -242,11 +242,10 @@ class CustomerModel(models.Model):
         self.cached_subscription_status = post_data['subscription']['status']
         self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
 
-        # Perma Payments tells us about scheduled downgrades directly now (see
-        # LIL-5426). If a change is pending, leave the local tier fields as they
-        # are, since they already match the current tier. If the field is missing
-        # we're talking to an older payments build and nothing is pending.
-        pending_change = post_data['subscription'].get('pending_change')
+        # Perma Payments reports any scheduled downgrade in pending_change.
+        # While one is pending, leave the local tier fields alone: they
+        # already hold the current tier.
+        pending_change = post_data['subscription']['pending_change']
         if pending_change:
             pending_change = {
                 'rate': pending_change['rate'],

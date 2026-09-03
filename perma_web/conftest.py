@@ -985,8 +985,9 @@ def spoof_pp_response_subscription_with_pending_change():
                 "link_limit_effective_timestamp": "9999-01-21T00:00:00.000000Z",
                 "link_limit": "unlimited",
                 "reference_number": "PERMA-1237-6201",
-                # until LIL-5426 stage 3, payments also reports a pending change
-                # by overlaying it on the fields above, so include both here
+                # the tier values above deliberately differ from the pending
+                # change, so tests can prove the tier fields are not applied
+                # to the customer while a change is pending
                 "pending_change": {
                     "rate": "9999.99",
                     "link_limit": "unlimited",
